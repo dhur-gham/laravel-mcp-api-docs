@@ -58,13 +58,16 @@ Middleware order: first `auth:sanctum` (token → user), then `can:useMcpApiDocs
 
 ## MCP Behaviour
 
-- **Tools**
-  - `search_endpoints(query)` – search paths/operations by keyword (path, summary, operationId, tags).
-  - `get_endpoint(method, path)` – get request/response schema and examples for a method/path.
-- **Resource**
-  - `api://openapi` – full OpenAPI spec.
+Read-only API info for AI agents to implement against (no real HTTP requests).
 
-The server instructions tell the AI to use these and not guess endpoints or payloads.
+- **Tools**
+  - `list_tags()` – list tags and their endpoints (method, path, operationId, summary).
+  - `search_endpoints(query)` – discover endpoints by keyword (path, summary, operationId, tags).
+  - `get_endpoint(method, path)` – full request/response schema for one endpoint.
+  - `get_endpoints(tag)` or `get_endpoints(paths: [{method, path}, ...])` – bulk schema for up to 25 endpoints (by tag or explicit list).
+- **Resources**
+  - `api://openapi/catalog` – servers + flat list of all operations (method, path, summary, operationId, tags) for fast scan.
+  - `api://openapi` – full OpenAPI spec.
 
 ## Usage in AI IDEs (Cursor, etc.)
 
