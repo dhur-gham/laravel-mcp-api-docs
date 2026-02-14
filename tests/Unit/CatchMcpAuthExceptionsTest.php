@@ -1,8 +1,8 @@
 <?php
 
 use DhurGham\LaravelMcpApiDocs\Http\Middleware\CatchMcpAuthExceptions;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
