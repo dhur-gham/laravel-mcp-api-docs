@@ -2,6 +2,7 @@
 
 namespace DhurGham\LaravelMcpApiDocs;
 
+use DhurGham\LaravelMcpApiDocs\Http\Middleware\CatchMcpAuthExceptions;
 use DhurGham\LaravelMcpApiDocs\Mcp\ApiDocsServer;
 use Laravel\Mcp\Facades\Mcp;
 use Spatie\LaravelPackageTools\Package;
@@ -45,8 +46,10 @@ class LaravelMcpApiDocsServiceProvider extends PackageServiceProvider
 
         $path = (string) config('mcp-api-docs.path', '/mcp/api-docs');
 
+        $middleware = [CatchMcpAuthExceptions::class, ...self::resolveMiddleware()];
+
         Mcp::web($path, ApiDocsServer::class)
-            ->middleware(self::resolveMiddleware());
+            ->middleware($middleware);
     }
 
     /** @return array<int, string> */
