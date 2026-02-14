@@ -1,0 +1,20 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Test API", "version": "1.0" },
+  "paths": {
+    "/user": {
+      "get": {
+        "summary": "Get current user",
+        "operationId": "user.getUser",
+        "tags": ["User"]
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "List orders",
+        "operationId": "orders.list",
+        "tags": ["Orders"]
+      }
+    }
+  }
+}
