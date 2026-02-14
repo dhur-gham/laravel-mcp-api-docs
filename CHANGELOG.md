@@ -2,6 +2,13 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
+## v1.2 - 2026-02-14
+
+- Introduced CatchMcpAuthExceptions middleware to enhance error handling.
+- Updated middleware registration to include the new middleware alongside existing ones.
+
+**Full Changelog**: https://github.com/dhur-gham/laravel-mcp-api-docs/compare/1.1...1.2
+
 ## v1.1 - 2026-02-14
 
 ### What's Changed
