@@ -59,6 +59,7 @@ class GetEndpointsTool extends Tool
                 return false;
             }
             $seen[$key] = true;
+
             return true;
         }));
         $toFetch = array_slice($toFetch, 0, self::MAX);

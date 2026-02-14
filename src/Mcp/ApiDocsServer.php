@@ -4,8 +4,8 @@ namespace DhurGham\LaravelMcpApiDocs\Mcp;
 
 use DhurGham\LaravelMcpApiDocs\Mcp\Resources\OpenApiCatalogResource;
 use DhurGham\LaravelMcpApiDocs\Mcp\Resources\OpenApiResource;
-use DhurGham\LaravelMcpApiDocs\Mcp\Tools\GetEndpointTool;
 use DhurGham\LaravelMcpApiDocs\Mcp\Tools\GetEndpointsTool;
+use DhurGham\LaravelMcpApiDocs\Mcp\Tools\GetEndpointTool;
 use DhurGham\LaravelMcpApiDocs\Mcp\Tools\ListTagsTool;
 use DhurGham\LaravelMcpApiDocs\Mcp\Tools\SearchEndpointsTool;
 use Laravel\Mcp\Server;
