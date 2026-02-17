@@ -2,7 +2,6 @@
 
 use DhurGham\LaravelMcpApiDocs\Mcp\Tools\ListDocsTool;
 use Laravel\Mcp\Request;
-use Laravel\Mcp\Response;
 
 beforeEach(function () {
     $this->docsDir = sys_get_temp_dir().'/mcp-docs-test-'.uniqid();
