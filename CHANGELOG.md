@@ -2,6 +2,14 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
+## v1.4 - 2026-02-17
+
+### What's Changed
+
+* Add support for feature documentation in MCP API Docs by @dhur-gham in https://github.com/dhur-gham/laravel-mcp-api-docs/pull/3
+
+**Full Changelog**: https://github.com/dhur-gham/laravel-mcp-api-docs/compare/1.3...1.4
+
 ## v1.3 - 2026-02-17
 
 ### What's Changed
