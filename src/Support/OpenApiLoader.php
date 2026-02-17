@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 class OpenApiLoader
 {
-    public static function load(): array
+    public static function load(?string $bearerToken = null): array
     {
         $file = config('mcp-api-docs.openapi.file');
         $url = config('mcp-api-docs.openapi.url');
@@ -28,7 +28,12 @@ class OpenApiLoader
         }
 
         if (is_string($url) && $url !== '') {
-            $resp = Http::timeout(10)->get($url);
+            $auth = $bearerToken ?? (app()->bound('request') ? request()->header('Authorization') : null);
+            $client = Http::timeout(10);
+            if ($auth !== null && $auth !== '') {
+                $client = $client->withHeaders(['Authorization' => $auth]);
+            }
+            $resp = $client->get($url);
 
             if ($resp->successful()) {
                 return self::decode($resp->body());

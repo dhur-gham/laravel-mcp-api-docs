@@ -53,3 +53,49 @@ it('falls back to error when url returns unsuccessful', function () {
 
     expect($spec['x_error'] ?? null)->toContain('No OpenAPI JSON found');
 });
+
+it('sends bearer token when loading from url and token provided', function () {
+    $json = file_get_contents(__DIR__.'/../fixtures/openapi.json');
+    Http::fake([
+        '*' => function ($request) use ($json) {
+            if ($request->hasHeader('Authorization') && $request->header('Authorization')[0] === 'Bearer secret-token') {
+                return Http::response($json, 200);
+            }
+            return Http::response('Unauthorized', 401);
+        },
+    ]);
+    config()->set('mcp-api-docs.openapi.url', 'https://staging.example.com/docs/api.json');
+
+    $spec = OpenApiLoader::load('Bearer secret-token');
+
+    expect($spec['paths']['/user'] ?? null)->toBeArray();
+});
+
+it('returns error when url requires auth and no token given', function () {
+    Http::fake(['*' => Http::response('Unauthorized', 401)]);
+    config()->set('mcp-api-docs.openapi.url', 'https://staging.example.com/docs/api.json');
+
+    $spec = OpenApiLoader::load();
+
+    expect($spec['x_error'] ?? null)->toContain('No OpenAPI JSON found');
+});
+
+it('forwards request authorization when loading from url and no token passed', function () {
+    $json = file_get_contents(__DIR__.'/../fixtures/openapi.json');
+    Http::fake([
+        '*' => function ($request) use ($json) {
+            if ($request->hasHeader('Authorization')) {
+                return Http::response($json, 200);
+            }
+            return Http::response('Unauthorized', 401);
+        },
+    ]);
+    config()->set('mcp-api-docs.openapi.url', 'https://staging.example.com/docs/api.json');
+    $req = \Illuminate\Http\Request::create('/');
+    $req->headers->set('Authorization', 'Bearer user-token');
+    app()->instance('request', $req);
+
+    $spec = OpenApiLoader::load();
+
+    expect($spec['paths']['/user'] ?? null)->toBeArray();
+});
