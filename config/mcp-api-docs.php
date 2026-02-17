@@ -39,4 +39,13 @@ return [
         'url' => env('MCP_API_DOCS_OPENAPI_URL', null),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Docs for MCP (feature docs folder)
+    |--------------------------------------------------------------------------
+    | Path to folder containing .md files: filename = feature name, content = docs.
+    | Null = disabled. Use base_path('DocsForMcp') for app-root DocsForMcp.
+    */
+    'docs_folder' => env('MCP_API_DOCS_DOCS_FOLDER', null),
+
 ];
