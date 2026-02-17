@@ -61,6 +61,7 @@ it('sends bearer token when loading from url and token provided', function () {
             if ($request->hasHeader('Authorization') && $request->header('Authorization')[0] === 'Bearer secret-token') {
                 return Http::response($json, 200);
             }
+
             return Http::response('Unauthorized', 401);
         },
     ]);
@@ -87,6 +88,7 @@ it('forwards request authorization when loading from url and no token passed', f
             if ($request->hasHeader('Authorization')) {
                 return Http::response($json, 200);
             }
+
             return Http::response('Unauthorized', 401);
         },
     ]);
