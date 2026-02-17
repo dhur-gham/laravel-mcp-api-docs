@@ -32,6 +32,7 @@ After publishing, edit `config/mcp-api-docs.php`:
 | `policy_ability` | `MCP_API_DOCS_POLICY_ABILITY` | Gate ability (e.g. `useMcpApiDocs`) required after auth; user must be allowed by policy. Omit or null to skip. |
 | `openapi.file` | `MCP_API_DOCS_OPENAPI_FILE` | Absolute path to a local OpenAPI JSON file. |
 | `openapi.url` | `MCP_API_DOCS_OPENAPI_URL` | URL to fetch OpenAPI JSON from. |
+| `docs_folder` | `MCP_API_DOCS_DOCS_FOLDER` | Path to folder of feature docs (e.g. `DocsForMcp`); each `.md` file = one feature. Omit or null = docs tools are not registered. |
 
 If neither `openapi.file` nor `openapi.url` is set, the package looks for `openapi.json` in `public/`, project root, `storage/app/`, and `storage/app/api-docs/`.
 
@@ -65,6 +66,8 @@ Read-only API info for AI agents to implement against (no real HTTP requests).
   - `search_endpoints(query)` – discover endpoints by keyword (path, summary, operationId, tags).
   - `get_endpoint(method, path)` – full request/response schema for one endpoint.
   - `get_endpoints(tag)` or `get_endpoints(paths: [{method, path}, ...])` – bulk schema for up to 25 endpoints (by tag or explicit list).
+  - `list_docs()` – list feature doc names from the DocsForMcp folder (when `docs_folder` is set). Returns `name` (filename without `.md`) and `summary` (first heading).
+  - `get_doc(name)` – return the markdown content of a feature doc by name.
 - **Resources**
   - `api://openapi/catalog` – servers + flat list of all operations (method, path, summary, operationId, tags) for fast scan.
   - `api://openapi` – full OpenAPI spec.
