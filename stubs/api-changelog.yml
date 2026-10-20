@@ -143,9 +143,10 @@ jobs:
 
           # 3. Net API change of the whole PR: merge base -> latest commit.
           mb=$(git merge-base HEAD "$base")
-          git show "$mb:openapi.json" > /tmp/old.json 2>/dev/null \
-            || echo '{"openapi":"3.1.0","info":{"title":"none","version":"0"},"paths":{}}' > /tmp/old.json
           [ -f openapi.json ] || { echo "No openapi.json on this branch."; exit 0; }
+          # The first openapi.json (none on the base branch yet) is the baseline, not a list of new endpoints.
+          baseline=false
+          git show "$mb:openapi.json" > /tmp/old.json 2>/dev/null || { baseline=true; cp openapi.json /tmp/old.json; }
 
           # oasdiff, checked against its published SHA-256 before it runs.
           curl -fsSL -o /tmp/oasdiff.tar.gz https://github.com/oasdiff/oasdiff/releases/download/v1.34.0/oasdiff_1.34.0_linux_amd64.tar.gz
@@ -177,7 +178,9 @@ jobs:
 
           # 6. Comment (skipped for PRs that never touched the API).
           existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate -q "[.[] | select(.body | startswith(\"$MARK\"))] | length")
-          if [ -z "$table" ]; then
+          if [ "$baseline" = true ]; then
+            printf '### API changes in this PR\n\nThis PR adds the first `openapi.json`. It is the baseline, so there is no changelog entry. PRs after it get one.\n' > /tmp/comment.md
+          elif [ -z "$table" ]; then
             [ "$existing" = 0 ] && exit 0
             printf '### API changes in this PR\n\nNo API changes. There is no changelog entry for this PR.\n' > /tmp/comment.md
           else
