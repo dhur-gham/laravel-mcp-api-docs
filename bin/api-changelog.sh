@@ -19,6 +19,19 @@ fi
 old="$1"
 new="$2"
 
+# PHP generators (e.g. Scramble) write an empty map as [] (e.g. "properties": []), which oasdiff rejects.
+# Turn empty arrays back into {} for keys that are always maps in OpenAPI.
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+normalize() {
+  jq 'walk(if type == "object" then with_entries(
+    if (.value == [] and (.key | IN("properties", "patternProperties", "schemas", "responses", "headers", "content",
+      "securitySchemes", "requestBodies", "links", "callbacks", "variables", "encoding", "mapping", "paths")))
+    then .value = {} else . end) else . end)' "$1" > "$2"
+}
+normalize "$old" "$tmp/old.json" && old="$tmp/old.json"
+normalize "$new" "$tmp/new.json" && new="$tmp/new.json"
+
 # oasdiff level: 3 = breaking, 2 = warning, 1 = info. Deprecations are reported by id.
 # Spec-level notes (no operation, e.g. "info.version not bumped") are not endpoint changes, so they are skipped.
 changes=$(oasdiff changelog "$old" "$new" --format json | jq '[.[] | select(.operation and .path) | {

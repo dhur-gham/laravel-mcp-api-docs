@@ -107,6 +107,12 @@ That's it. Open a PR that changes the API and the bot adds its entry. The detail
    - **I commit openapi.json myself:** use any tool; the bot reads the committed file.
    - **Scramble:** the bot regenerates `openapi.json` on every push, so a forgotten export is fixed for you. You also pick the database your migrations run on (MySQL/MariaDB, PostgreSQL or SQLite); CI migrates a throwaway copy of it to export the spec, adding about a minute per run. Export once on your default branch first, so the first PR's entry does not include older, unexported changes.
 
+   Scramble reads column types from the database, so the export is only correct if CI can build all your tables. The workflow builds them with a plain `php artisan migrate`. If your schema is set up differently (migrations in a vendor package, several connections, a schema dump), either:
+   - edit the export block in `.github/workflows/api-changelog.yml` (the `if [ "$OPENAPI_EXPORT" = scramble ]` lines, around lines 127–142) to migrate the way your tests do, or
+   - choose **I commit openapi.json myself** and export locally before each push.
+
+   Large apps may need more memory for the export: `php -d memory_limit=-1 artisan scramble:export`.
+
    Without questions: `php artisan mcp-api-docs:install-changelog --export=scramble --db=mysql` (or `--export=manual`). Run it again to switch modes. Prefer copying the file as is: `php artisan vendor:publish --tag="laravel-mcp-api-docs-changelog-workflow"`.
 
    Merge the workflow to your default branch; the `/update-mcp-changelog` command only works from there.
