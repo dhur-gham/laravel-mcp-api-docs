@@ -19,15 +19,15 @@ fi
 old="$1"
 new="$2"
 
-# PHP generators (e.g. Scramble) write an empty map as [] (e.g. "properties": []), which oasdiff rejects.
-# Turn empty arrays back into {} for keys that are always maps in OpenAPI.
+# PHP generators (e.g. Scramble) write a map with no keys or numeric keys as a list ("properties": [] or [{...}]),
+# which oasdiff rejects. Turn lists back into maps for keys that are always maps in OpenAPI ("0", "1", ... as keys).
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 normalize() {
   jq 'walk(if type == "object" then with_entries(
-    if (.value == [] and (.key | IN("properties", "patternProperties", "schemas", "responses", "headers", "content",
+    if ((.value | type) == "array" and (.key | IN("properties", "patternProperties", "schemas", "responses", "headers", "content",
       "securitySchemes", "requestBodies", "links", "callbacks", "variables", "encoding", "mapping", "paths")))
-    then .value = {} else . end) else . end)' "$1" > "$2"
+    then .value |= (to_entries | map(.key |= tostring) | from_entries) else . end) else . end)' "$1" > "$2"
 }
 normalize "$old" "$tmp/old.json" && old="$tmp/old.json"
 normalize "$new" "$tmp/new.json" && new="$tmp/new.json"
