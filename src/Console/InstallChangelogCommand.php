@@ -74,7 +74,13 @@ class InstallChangelogCommand extends Command
         }
         file_put_contents($target, $workflow);
 
-        $this->components->info('Created .github/workflows/api-changelog.yml ('.($export === 'scramble' ? "Scramble export, {$db}" : 'manual openapi.json').').');
+        $script = base_path('.github/scripts/api-changelog.sh');
+        if (! is_dir(dirname($script))) {
+            mkdir(dirname($script), 0755, true);
+        }
+        copy(__DIR__.'/../../bin/api-changelog.sh', $script);
+
+        $this->components->info('Created .github/workflows/api-changelog.yml and .github/scripts/api-changelog.sh ('.($export === 'scramble' ? "Scramble export, {$db}" : 'manual openapi.json').').');
         $this->components->bulletList([
             $export === 'scramble'
                 ? 'Export once and commit openapi.json: php artisan scramble:export --path=openapi.json'

@@ -2,18 +2,24 @@
 
 beforeEach(function () {
     $this->target = base_path('.github/workflows/api-changelog.yml');
+    $this->script = base_path('.github/scripts/api-changelog.sh');
     @unlink($this->target);
+    @unlink($this->script);
 });
 
 afterEach(function () {
     @unlink($this->target);
+    @unlink($this->script);
 });
 
 it('writes the workflow for manual openapi.json', function () {
     $this->artisan('mcp-api-docs:install-changelog', ['--export' => 'manual'])->assertSuccessful();
 
     expect(file_get_contents($this->target))->toContain('OPENAPI_EXPORT: ""')
-        ->toContain('/update-mcp-changelog');
+        ->toContain('/update-mcp-changelog')
+        ->toContain('sha256sum -c')
+        ->toContain('cp .github/scripts/api-changelog.sh');
+    expect(file_get_contents($this->script))->toBe(file_get_contents(__DIR__.'/../../bin/api-changelog.sh'));
 });
 
 it('writes the workflow for Scramble export with the chosen database', function () {

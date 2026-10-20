@@ -84,7 +84,7 @@ It is off until you set it up. Updating the package alone changes nothing.
 ```bash
 php artisan scramble:export --path=openapi.json   # 1. commit your OpenAPI spec (any tool works)
 php artisan mcp-api-docs:install-changelog        # 2. answer the questions, it writes the workflow
-git add openapi.json .github/workflows/api-changelog.yml
+git add openapi.json .github/workflows/api-changelog.yml .github/scripts/api-changelog.sh
 git commit -m "Add API changelog" && git push      # 3. merge this to your default branch
 ```
 
@@ -98,7 +98,7 @@ That's it. Open a PR that changes the API and the bot adds its entry. The detail
 ### Setup
 
 1. **Commit `openapi.json`** at your repo root (for example `php artisan scramble:export --path=openapi.json`).
-2. **Add the workflow.** The installer asks how `openapi.json` is kept up to date and writes `.github/workflows/api-changelog.yml` with the matching settings:
+2. **Add the workflow.** The installer asks how `openapi.json` is kept up to date and writes `.github/workflows/api-changelog.yml` with the matching settings, plus the diff script `.github/scripts/api-changelog.sh` (committed with your code, so CI never downloads a script; run the installer again after updating the package to refresh it):
 
    ```bash
    php artisan mcp-api-docs:install-changelog
@@ -146,6 +146,7 @@ Pull after the bot commits, like with a code-style bot.
 - Without auto-export, if a PR changes the API but `openapi.json` is not regenerated, no entry is created.
 - Only repo owners, members and collaborators can run `/update-mcp-changelog`. Pull requests from forks are skipped.
 - Bot commits made with the default `GITHUB_TOKEN` do not trigger your other workflows. Add a `CHANGELOG_TOKEN` secret (a fine-grained token with contents and pull-requests write) if your tests must run on them.
+- The workflow pins its actions to commit SHAs and checks the oasdiff download against its SHA-256.
 - `bin/api-changelog.sh` does the diff and can be run by hand (needs oasdiff and jq):
 
   ```bash

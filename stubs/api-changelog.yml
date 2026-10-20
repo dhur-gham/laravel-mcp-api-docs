@@ -57,7 +57,7 @@ jobs:
 
       - name: Checkout
         if: steps.pr.outputs.same_repo == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ steps.pr.outputs.head }}
           fetch-depth: 0
@@ -65,7 +65,7 @@ jobs:
 
       - name: Set up PHP (export only)
         if: steps.pr.outputs.same_repo == 'true' && env.OPENAPI_EXPORT == 'scramble'
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ env.EXPORT_PHP }}
           extensions: pdo_mysql, pdo_pgsql, pdo_sqlite
@@ -147,8 +147,12 @@ jobs:
             || echo '{"openapi":"3.1.0","info":{"title":"none","version":"0"},"paths":{}}' > /tmp/old.json
           [ -f openapi.json ] || { echo "No openapi.json on this branch."; exit 0; }
 
-          curl -fsSL https://github.com/oasdiff/oasdiff/releases/download/v1.34.0/oasdiff_1.34.0_linux_amd64.tar.gz | tar -xz -C /usr/local/bin oasdiff
-          curl -fsSL -o /tmp/api-changelog.sh https://raw.githubusercontent.com/dhur-gham/laravel-mcp-api-docs/feature/api-changelog/bin/api-changelog.sh
+          # oasdiff, checked against its published SHA-256 before it runs.
+          curl -fsSL -o /tmp/oasdiff.tar.gz https://github.com/oasdiff/oasdiff/releases/download/v1.34.0/oasdiff_1.34.0_linux_amd64.tar.gz
+          echo "7c88e09fd500b231af2819eb21f6fdfc7bcdfe2741d2c1937c59e7b72c8a575a  /tmp/oasdiff.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/oasdiff.tar.gz -C /usr/local/bin oasdiff
+          # The diff script is committed in this repo (written by mcp-api-docs:install-changelog), never downloaded.
+          cp .github/scripts/api-changelog.sh /tmp/api-changelog.sh
           table=$(bash /tmp/api-changelog.sh --markdown /tmp/old.json openapi.json)
 
           # 4. Rebuild the file: main's version plus this PR's entry on top. Never duplicates, always merges cleanly.

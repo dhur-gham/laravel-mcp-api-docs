@@ -35,7 +35,10 @@ class LaravelMcpApiDocsServiceProvider extends PackageServiceProvider
             );
 
             $this->publishes(
-                [__DIR__.'/../stubs/api-changelog.yml' => base_path('.github/workflows/api-changelog.yml')],
+                [
+                    __DIR__.'/../stubs/api-changelog.yml' => base_path('.github/workflows/api-changelog.yml'),
+                    __DIR__.'/../bin/api-changelog.sh' => base_path('.github/scripts/api-changelog.sh'),
+                ],
                 'laravel-mcp-api-docs-changelog-workflow'
             );
         }
