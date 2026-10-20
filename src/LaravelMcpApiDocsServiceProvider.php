@@ -2,6 +2,7 @@
 
 namespace DhurGham\LaravelMcpApiDocs;
 
+use DhurGham\LaravelMcpApiDocs\Console\InstallChangelogCommand;
 use DhurGham\LaravelMcpApiDocs\Http\Middleware\CatchMcpAuthExceptions;
 use DhurGham\LaravelMcpApiDocs\Mcp\ApiDocsServer;
 use Laravel\Mcp\Facades\Mcp;
@@ -12,7 +13,8 @@ class LaravelMcpApiDocsServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
-        $package->name('laravel-mcp-api-docs');
+        $package->name('laravel-mcp-api-docs')
+            ->hasCommand(InstallChangelogCommand::class);
     }
 
     public function register(): mixed
@@ -30,6 +32,11 @@ class LaravelMcpApiDocsServiceProvider extends PackageServiceProvider
             $this->publishes(
                 [__DIR__.'/../config/mcp-api-docs.php' => config_path('mcp-api-docs.php')],
                 'laravel-mcp-api-docs-config'
+            );
+
+            $this->publishes(
+                [__DIR__.'/../stubs/api-changelog.yml' => base_path('.github/workflows/api-changelog.yml')],
+                'laravel-mcp-api-docs-changelog-workflow'
             );
         }
     }

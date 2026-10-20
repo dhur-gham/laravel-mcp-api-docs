@@ -1,6 +1,28 @@
 # Changelog
 
-All notable changes to `:package_name` will be documented in this file.
+All notable changes to `dhur-gham/laravel-mcp-api-docs` will be documented in this file.
+
+## Unreleased
+
+### Added
+
+* Per-endpoint API changelog: `bin/api-changelog.sh` builds `api-changelog.json` from an oasdiff diff of two specs; new `get_changelog(since?)` tool and a `changes` list in `get_endpoint` (config `changelog_file`)
+
+### Changed
+
+* Require `laravel/mcp` ^0.7.0 (0.x breaking bump) and fix README requirements (PHP 8.3+, laravel/mcp ^0.7.0)
+* `OpenApiLoader` now checks the configured `openapi.url` before the local fallback files
+* Loaded OpenAPI spec is cached (`openapi.cache_ttl`, default 60s, 0 disables)
+* Server version reports `1.4.0`; instructions are built from parts instead of a regex
+* `minimum-stability` set to `stable`
+
+### Fixed
+
+* `DocsFolderReader::listDocs` no longer calls `fgets` on an unchecked `fopen` handle
+
+### Removed
+
+* Leftover Spatie skeleton `configure.php`
 
 ## v1.4 - 2026-02-17
 

@@ -14,6 +14,17 @@ it('publishes config with tag', function () {
     $result->assertSuccessful();
 });
 
+it('publishes the API changelog workflow with tag', function () {
+    $target = base_path('.github/workflows/api-changelog.yml');
+    @unlink($target);
+
+    $this->artisan('vendor:publish', ['--tag' => 'laravel-mcp-api-docs-changelog-workflow', '--force' => true])
+        ->assertSuccessful();
+
+    expect(file_get_contents($target))->toContain('/update-mcp-changelog');
+    @unlink($target);
+});
+
 it('adds can:ability to middleware when policy_ability is set', function () {
     config()->set('mcp-api-docs.middleware', ['auth:sanctum']);
     config()->set('mcp-api-docs.policy_ability', 'useMcpApiDocs');

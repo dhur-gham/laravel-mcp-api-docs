@@ -1,6 +1,7 @@
 <?php
 
 use DhurGham\LaravelMcpApiDocs\Support\OpenApiLoader;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
@@ -22,7 +23,7 @@ it('returns error structure when no source and no fallback file', function () {
     $spec = OpenApiLoader::load();
 
     expect($spec['x_error'] ?? null)->toContain('No OpenAPI JSON found')
-        ->and($spec['paths'])->toBeInstanceOf(\stdClass::class);
+        ->and($spec['paths'])->toBeInstanceOf(stdClass::class);
 });
 
 it('decodes invalid json to error structure', function () {
@@ -93,7 +94,7 @@ it('forwards request authorization when loading from url and no token passed', f
         },
     ]);
     config()->set('mcp-api-docs.openapi.url', 'https://staging.example.com/docs/api.json');
-    $req = \Illuminate\Http\Request::create('/');
+    $req = Request::create('/');
     $req->headers->set('Authorization', 'Bearer user-token');
     app()->instance('request', $req);
 

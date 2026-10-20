@@ -1,0 +1,197 @@
+name: api-changelog
+
+# Keeps this PR's entry in api-changelog.json up to date.
+# - Runs on every push to a ready (non-draft) PR into main.
+# - Comment /update-mcp-changelog on the PR to run it by hand (for example after main moved and the PR conflicts).
+# The entry is the net change between the PR's merge base and its latest commit, labelled "#<PR number>".
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+  issue_comment:
+    types: [created]
+
+env:
+  # "" = you commit openapi.json yourself (any tool). "scramble" = the bot regenerates it on every push.
+  OPENAPI_EXPORT: ""
+  # Only used when exporting: the database your migrations run on (mysql, pgsql or sqlite), and PHP version.
+  EXPORT_DB: mysql
+  EXPORT_PHP: "8.4"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: api-changelog-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    if: >-
+      (github.event_name == 'pull_request'
+        && !github.event.pull_request.draft
+        && github.event.pull_request.head.repo.full_name == github.repository)
+      || (github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && startsWith(github.event.comment.body, '/update-mcp-changelog')
+        && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    env:
+      # Optional: a PAT or GitHub App token in CHANGELOG_TOKEN makes the bot's commits trigger your other checks.
+      GH_TOKEN: ${{ secrets.CHANGELOG_TOKEN || github.token }}
+      PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+
+    steps:
+      - name: Read pull request
+        id: pr
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" > /tmp/pr.json
+          echo "head=$(jq -r .head.ref /tmp/pr.json)" >> "$GITHUB_OUTPUT"
+          echo "base=$(jq -r .base.ref /tmp/pr.json)" >> "$GITHUB_OUTPUT"
+          echo "same_repo=$(jq -r '.head.repo.full_name == .base.repo.full_name' /tmp/pr.json)" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_EVENT_NAME" = issue_comment ]; then
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/comments/${{ github.event.comment.id }}/reactions" -f content=eyes > /dev/null
+          fi
+
+      - name: Checkout
+        if: steps.pr.outputs.same_repo == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.head }}
+          fetch-depth: 0
+          token: ${{ secrets.CHANGELOG_TOKEN || github.token }}
+
+      - name: Set up PHP (export only)
+        if: steps.pr.outputs.same_repo == 'true' && env.OPENAPI_EXPORT == 'scramble'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.EXPORT_PHP }}
+          extensions: pdo_mysql, pdo_pgsql, pdo_sqlite
+          tools: composer:v2
+
+      - name: Start database (export only)
+        if: steps.pr.outputs.same_repo == 'true' && env.OPENAPI_EXPORT == 'scramble' && env.EXPORT_DB != 'sqlite'
+        run: |
+          if [ "$EXPORT_DB" = mysql ]; then
+            docker run -d --name db -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=app mysql:8.0
+            until docker exec db mysqladmin ping -uroot -proot --silent 2>/dev/null; do sleep 2; done
+          else
+            docker run -d --name db -p 5432:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_DB=app postgres:16
+            until docker exec db pg_isready -U postgres >/dev/null 2>&1; do sleep 2; done
+          fi
+
+      - name: Update changelog entry
+        if: steps.pr.outputs.same_repo == 'true'
+        env:
+          HEAD_REF: ${{ steps.pr.outputs.head }}
+          BASE_REF: ${{ steps.pr.outputs.base }}
+        run: |
+          set -euo pipefail
+          MARK='<!-- api-changelog -->'
+          title=$(jq -r .title /tmp/pr.json)
+          base="origin/$BASE_REF"
+          start=$(git rev-parse HEAD)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin "$BASE_REF"
+
+          comment() {  # one comment per PR, edited in place
+            body="$MARK"$'\n'"$(cat /tmp/comment.md)"
+            id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate -q ".[] | select(.body | startswith(\"$MARK\")) | .id" | head -1)
+            if [ -n "$id" ]; then
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+            else
+              gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -f body="$body" > /dev/null
+            fi
+          }
+
+          # 1. If main got new changelog entries since this branch started, merge main first.
+          #    A conflict only in api-changelog.json is resolved by rebuilding the file below.
+          if ! git diff --quiet "$(git merge-base HEAD "$base")" "$base" -- api-changelog.json; then
+            if ! git merge -q --no-edit "$base"; then
+              others=$(git diff --name-only --diff-filter=U | grep -vx api-changelog.json || true)
+              if [ -n "$others" ]; then
+                git merge --abort
+                printf '### API changes in this PR\n\n❌ Merging `%s` conflicts in files the bot cannot fix:\n\n```\n%s\n```\n\nResolve them, push, and the entry updates again.\n' "$BASE_REF" "$others" > /tmp/comment.md
+                comment
+                exit 1
+              fi
+              git checkout --theirs -- api-changelog.json
+              git add api-changelog.json
+              git commit -q --no-edit
+            fi
+          fi
+
+          # 2. Optional: regenerate openapi.json from the code (after the merge, so it matches what will ship).
+          if [ "$OPENAPI_EXPORT" = scramble ]; then
+            export DB_CONNECTION="$EXPORT_DB" DB_HOST=127.0.0.1 DB_DATABASE=app
+            case "$EXPORT_DB" in
+              mysql) export DB_PORT=3306 DB_USERNAME=root DB_PASSWORD=root ;;
+              pgsql) export DB_PORT=5432 DB_USERNAME=postgres DB_PASSWORD=root ;;
+              sqlite) export DB_DATABASE="$PWD/database/ci-export.sqlite"; touch "$DB_DATABASE" ;;
+            esac
+            composer install -q --no-interaction --prefer-dist --no-progress
+            [ -f .env ] || cp .env.example .env
+            grep -q '^APP_KEY=base64' .env || php artisan key:generate -q
+            php artisan migrate --force -q
+            php artisan scramble:export --path=openapi.json
+            git add openapi.json
+            git diff --cached --quiet || git commit -q -m "Update openapi.json for #$PR"
+          fi
+
+          # 3. Net API change of the whole PR: merge base -> latest commit.
+          mb=$(git merge-base HEAD "$base")
+          git show "$mb:openapi.json" > /tmp/old.json 2>/dev/null \
+            || echo '{"openapi":"3.1.0","info":{"title":"none","version":"0"},"paths":{}}' > /tmp/old.json
+          [ -f openapi.json ] || { echo "No openapi.json on this branch."; exit 0; }
+
+          curl -fsSL https://github.com/oasdiff/oasdiff/releases/download/v1.34.0/oasdiff_1.34.0_linux_amd64.tar.gz | tar -xz -C /usr/local/bin oasdiff
+          curl -fsSL -o /tmp/api-changelog.sh https://raw.githubusercontent.com/dhur-gham/laravel-mcp-api-docs/feature/api-changelog/bin/api-changelog.sh
+          table=$(bash /tmp/api-changelog.sh --markdown /tmp/old.json openapi.json)
+
+          # 4. Rebuild the file: main's version plus this PR's entry on top. Never duplicates, always merges cleanly.
+          if git cat-file -e "$mb:api-changelog.json" 2>/dev/null; then
+            git show "$mb:api-changelog.json" > /tmp/changelog.json
+          else
+            echo '{"releases": []}' > /tmp/changelog.json
+          fi
+          bash /tmp/api-changelog.sh /tmp/old.json openapi.json "#$PR" /tmp/changelog.json "$title"
+          if [ -z "$table" ] && ! git cat-file -e "$mb:api-changelog.json" 2>/dev/null; then
+            [ -f api-changelog.json ] && git rm -q api-changelog.json
+          else
+            cp /tmp/changelog.json api-changelog.json
+            git add api-changelog.json
+          fi
+          git diff --cached --quiet || git commit -q -m "Update API changelog for #$PR"
+
+          # 5. Push the merge and/or entry commit.
+          if [ "$(git rev-parse HEAD)" != "$start" ]; then
+            git push -q origin "HEAD:$HEAD_REF" || { echo "The branch moved; the run for the new push updates it."; exit 0; }
+          fi
+
+          # 6. Comment (skipped for PRs that never touched the API).
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate -q "[.[] | select(.body | startswith(\"$MARK\"))] | length")
+          if [ -z "$table" ]; then
+            [ "$existing" = 0 ] && exit 0
+            printf '### API changes in this PR\n\nNo API changes. There is no changelog entry for this PR.\n' > /tmp/comment.md
+          else
+            {
+              echo "### API changes in this PR"
+              echo
+              if grep -q "🔴" <<< "$table"; then
+                echo "> ⚠️ This PR has **breaking** changes. Existing clients may stop working."
+                echo
+              fi
+              echo "$table"
+              echo
+              echo "✅ Entry \`#$PR\` is in \`api-changelog.json\` ($(git rev-parse --short HEAD)). It updates on every push."
+              echo "If this PR shows a conflict after \`$BASE_REF\` moved, comment \`/update-mcp-changelog\`."
+            } > /tmp/comment.md
+          fi
+          comment
+
+          if [ "$GITHUB_EVENT_NAME" = issue_comment ]; then
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/comments/${{ github.event.comment.id }}/reactions" -f content=rocket > /dev/null
+          fi
