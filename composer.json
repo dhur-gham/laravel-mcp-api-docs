@@ -11,15 +11,15 @@
     ],
     "require": {
         "php": "^8.3",
-        "illuminate/contracts": "^11.0||^12.0",
-        "laravel/mcp": "^0.7.0",
+        "illuminate/contracts": "^12.0",
+        "laravel/mcp": "^0.7.0||^0.8.0||^0.9.0||^1.0",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
         "nunomaduro/collision": "^8.8",
         "larastan/larastan": "^3.0",
-        "orchestra/testbench": "^10.0.0||^9.0.0",
+        "orchestra/testbench": "^10.0.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-arch": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",
@@ -28,6 +28,9 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "spatie/laravel-ray": "^1.35"
     },
+    "bin": [
+        "bin/api-changelog.sh"
+    ],
     "autoload": {
         "psr-4": {
             "DhurGham\\LaravelMcpApiDocs\\": "src/",
@@ -63,6 +66,6 @@
             }
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }

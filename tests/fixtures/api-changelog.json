@@ -1,0 +1,20 @@
+{
+    "releases": [
+        {
+            "version": "1.2.0",
+            "date": "2026-10-01",
+            "note": "Add avatar to user",
+            "changes": [
+                {"method": "GET", "path": "/user", "level": "non-breaking", "text": "added the optional property 'avatar' to the response with the '200' status"},
+                {"method": "POST", "path": "/orders", "level": "breaking", "text": "added the new required request property 'coupon'"}
+            ]
+        },
+        {
+            "version": "1.1.0",
+            "date": "2026-09-01",
+            "changes": [
+                {"method": "GET", "path": "/user", "level": "deprecation", "text": "deprecated the request query parameter 'expand'"}
+            ]
+        }
+    ]
+}

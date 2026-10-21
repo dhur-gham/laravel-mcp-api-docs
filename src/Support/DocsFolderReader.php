@@ -44,14 +44,9 @@ class DocsFolderReader
         foreach (glob($dir.DIRECTORY_SEPARATOR.'*.md') ?: [] as $file) {
             $name = pathinfo($file, PATHINFO_FILENAME);
             $firstLine = '';
-            if (is_readable($file)) {
-                $first = fgets($h = fopen($file, 'r'));
-                if ($first !== false) {
-                    $firstLine = trim(preg_replace('/^#+\s*/', '', $first));
-                }
-                if (isset($h)) {
-                    fclose($h);
-                }
+            $lines = is_readable($file) ? file($file, FILE_IGNORE_NEW_LINES) : false;
+            if ($lines !== false && isset($lines[0])) {
+                $firstLine = trim(preg_replace('/^#+\s*/', '', $lines[0]));
             }
             $out[] = ['name' => $name, 'summary' => $firstLine ?: null];
         }

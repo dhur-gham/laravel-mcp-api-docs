@@ -1,0 +1,61 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to protected property Laravel\\Mcp\\Request\:\:\$arguments\.$#'
+			identifier: property.protected
+			count: 3
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Access to protected property Laravel\\Mcp\\Request\:\:\$meta\.$#'
+			identifier: property.protected
+			count: 3
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:argument\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:arguments\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:input\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:json\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:param\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:params\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Call to protected method data\(\) of class Laravel\\Mcp\\Request\.$#'
+			identifier: method.protected
+			count: 2
+			path: src/Support/McpArgs.php
+
+		-
+			message: '#^Method Laravel\\Mcp\\Request\:\:get\(\) invoked with 0 parameters, 1\-2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Support/McpArgs.php

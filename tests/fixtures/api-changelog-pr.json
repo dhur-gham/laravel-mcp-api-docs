@@ -1,0 +1,49 @@
+{
+  "releases": [
+    {
+      "version": "#42",
+      "date": "2026-10-20",
+      "note": "Race test b: deprecate products",
+      "changes": [
+        {
+          "method": "GET",
+          "path": "/products",
+          "level": "deprecation",
+          "text": "endpoint deprecated"
+        }
+      ]
+    },
+    {
+      "version": "#41",
+      "date": "2026-10-20",
+      "note": "Race test a",
+      "changes": [
+        {
+          "method": "POST",
+          "path": "/orders",
+          "level": "non-breaking",
+          "text": "added the new optional request property `race_a`"
+        }
+      ]
+    },
+    {
+      "version": "#38",
+      "date": "2026-10-20",
+      "note": "Require coupon on orders",
+      "changes": [
+        {
+          "method": "POST",
+          "path": "/orders",
+          "level": "breaking",
+          "text": "added the new required request property `coupon`"
+        },
+        {
+          "method": "POST",
+          "path": "/auth/asiacell-session",
+          "level": "deprecation",
+          "text": "endpoint deprecated"
+        }
+      ]
+    }
+  ]
+}

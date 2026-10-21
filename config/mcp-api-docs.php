@@ -37,6 +37,8 @@ return [
     'openapi' => [
         'file' => env('MCP_API_DOCS_OPENAPI_FILE', null),
         'url' => env('MCP_API_DOCS_OPENAPI_URL', null),
+        // Seconds to cache the loaded spec; 0 disables caching.
+        'cache_ttl' => (int) env('MCP_API_DOCS_OPENAPI_CACHE_TTL', 60),
     ],
 
     /*
@@ -47,5 +49,14 @@ return [
     | Null = disabled. Use base_path('DocsForMcp') for app-root DocsForMcp.
     */
     'docs_folder' => env('MCP_API_DOCS_DOCS_FOLDER', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | API changelog
+    |--------------------------------------------------------------------------
+    | JSON file of releases + per-endpoint changes, generated at release time
+    | by bin/api-changelog.sh (oasdiff). Null = disabled.
+    */
+    'changelog_file' => env('MCP_API_DOCS_CHANGELOG_FILE', null),
 
 ];

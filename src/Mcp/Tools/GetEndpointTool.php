@@ -2,6 +2,7 @@
 
 namespace DhurGham\LaravelMcpApiDocs\Mcp\Tools;
 
+use DhurGham\LaravelMcpApiDocs\Support\ApiChangelog;
 use DhurGham\LaravelMcpApiDocs\Support\McpArgs;
 use DhurGham\LaravelMcpApiDocs\Support\OpenApiLoader;
 use Laravel\Mcp\Request;
@@ -44,6 +45,10 @@ class GetEndpointTool extends Tool
             'requestBody' => $op['requestBody'] ?? null,
             'responses' => $op['responses'] ?? [],
         ];
+
+        if (ApiChangelog::isEnabled()) {
+            $result['changes'] = ApiChangelog::forEndpoint($method, $path);
+        }
 
         return Response::text(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
