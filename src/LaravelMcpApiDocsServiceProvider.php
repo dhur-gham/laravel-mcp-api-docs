@@ -17,11 +17,11 @@ class LaravelMcpApiDocsServiceProvider extends PackageServiceProvider
             ->hasCommand(InstallChangelogCommand::class);
     }
 
-    public function register(): mixed
+    public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/mcp-api-docs.php', 'mcp-api-docs');
 
-        return parent::register();
+        parent::register();
     }
 
     public function boot(): void

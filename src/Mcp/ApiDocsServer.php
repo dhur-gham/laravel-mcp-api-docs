@@ -20,7 +20,7 @@ class ApiDocsServer extends Server
 {
     protected string $name = 'API Docs MCP';
 
-    protected string $version = '1.4.0';
+    protected string $version = '2.0.0';
 
     protected string $instructions = '';
 
@@ -58,15 +58,15 @@ class ApiDocsServer extends Server
         if (DocsFolderReader::isEnabled()) {
             $lines[] = self::INSTRUCTIONS_DOCS;
         } else {
-            $tools = array_values(array_filter($tools, fn ($t) => $t !== ListDocsTool::class && $t !== GetDocTool::class));
+            $tools = array_diff($tools, [ListDocsTool::class, GetDocTool::class]);
         }
         if (ApiChangelog::isEnabled()) {
             $lines[] = self::INSTRUCTIONS_CHANGELOG;
         } else {
-            $tools = array_values(array_filter($tools, fn ($t) => $t !== GetChangelogTool::class));
+            $tools = array_diff($tools, [GetChangelogTool::class]);
         }
         // Let the parent build the context so it tracks laravel/mcp's ServerContext signature.
-        $this->tools = $tools;
+        $this->tools = array_values($tools);
         $this->instructions = self::INSTRUCTIONS_INTRO."\n\nUse:\n".implode("\n", $lines);
 
         return parent::createContext();
